@@ -112,6 +112,33 @@ VoltAgent 35 846, vercel-labs 32 531 (vlastní distribuce), travisvn 15 436
   lokálního marketplace narazí na kolizi názvu — přesně jak varoval integrační plán.
 - Fork má 292 skills, upstream 311. **Jsme o 19 pozadu.**
 
+### Automatické commitování (2026-10-17)
+
+Dvě naplánované úlohy, obě pod uživatelským účtem, obě ověřené ostrým během.
+
+| Úloha | Co dělá | Kadence |
+|---|---|---|
+| `Obsidian Vault Backup (Jir_KA)` | `vault_backup.py` — scoped záloha vaultu, commit i push | 30 min |
+| `Agent Autocommit (all repos)` | `multiagent-orchestration/scripts/autocommit.py` — 18 repozitářů | 30 min, posun 15 min |
+
+Režim: kódová repa **commitují lokálně a nepushují**; vaulty pushují.
+Důvod rozdílu: lokální commit je záchranná síť, kterou nikdo nevidí; push
+rozpracovaného kódu do sdílené větve je jiná operace s jinými důsledky.
+
+**Proč brána, a ne `git add -A`.** Git obnovuje obsah snadno, ale odstraňuje
+ho jen přepsáním historie. Commitnuté tajemství je tam napořád — „vrácení
+o verzi zpátky“ ho neodstraní. Každá brána existuje proto, aby něco do historie
+nepustila, ne aby bránila práci. Gate: denylist názvů, secret a conflict scan,
+limit 20 MB, strop počtu souborů i mazání, zákaz detached HEAD a rozpracovaného
+merge, explicitní pathspecy místo `add -A`, rescan ze stage a ne z pracovního stromu.
+
+**Co to hned při prvním běhu zachytilo:** `hermes-ops/backups/cxweb-pre-20260926/auth.json`
+s `OPENAI_API_KEY`, `tokens` a `id_token`. Untracked, bez `.gitignore`, nikdy
+necommitnutý. Slepý autocommit by ten klíč zapsal do historie natrvalo.
+`hermes-ops` žádný `.gitignore` neměl; byl doplněn.
+
+První sweep: 369 souborů v 9 repozitářích.
+
 ### Pilot
 
 [EBB-PILOT-INVENTORY.md](EBB-PILOT-INVENTORY.md) — inventura agentní vrstvy
@@ -135,3 +162,7 @@ neexistuje — „kanonický WSL home“ z integračního plánu na tomto stroji
 | 2026-10-16 | Produktové zadání (§2–9) odloženo — produkt není vyzrálý | jiris | Šablona zůstává k dispozici; mezitím běží integrace a pilot |
 | 2026-10-16 | Zaregistrovány 4 skill marketplaces v ~/.claude | jiris | Jen ukazatele, nic nenainstalováno; kolize názvu `ecc` |
 | 2026-10-16 | Pilot = inventura agentní vrstvy napříč worktree | jiris | Zadání v EBB-PILOT-INVENTORY.md, čeká na schválení |
+| 2026-10-17 | Obsidian vault připojen do Orcy; registrovány i Hermes, NinjaTrader a multiagent-orchestration | jiris | Z 14 na 18 repozitářů |
+| 2026-10-17 | Commitnuto a pushnuto hromadné přejmenování vaultu (.en/.cs) | jiris | Odblokovalo zálohu, která stála od 26. 9. |
+| 2026-10-17 | Automatický commit na všech repozitářích, lokálně bez pushe | jiris | Dvě naplánované úlohy po 30 min |
+| 2026-10-17 | MO: fast-forward main na 3309f65, konec detached HEAD | jiris | Záchranná větev rescue/detached-head-20261017 ponechána |
